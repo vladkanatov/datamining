@@ -2,7 +2,7 @@ from datetime import datetime
 import importlib
 import inspect
 
-from .logger import logger
+from loguru import logger
 from .manager import user_agent
 from datamining.logger import parser_name
 from datamining.manager.session import AsyncSession, AsyncProxySession
