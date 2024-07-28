@@ -4,10 +4,7 @@ import inspect
 
 from loguru import logger
 from .manager import user_agent
-from datamining.logger import parser_name
 from datamining.manager.session import AsyncSession, AsyncProxySession
-from datamining.ai.venue import find_or_create_venue
-
 
 class Controller:
 
@@ -21,25 +18,6 @@ class Controller:
         """Этот класс используется для запуска
         скриптов для парсинга информации с различных
         web-ресурсов"""
-
-    # Старая версия. Это скоро пропадёт
-    # @staticmethod
-    # def _clear_events():
-    #     delete_query = delete(AllEvents).where(getattr(AllEvents, "parser") == parser_name)
-    #
-    #     session.execute(delete_query)
-    #
-    #     # Подтверждаем изменения
-    #     session.commit()
-
-    @staticmethod
-    async def _clear_events(script):
-
-        payload = {
-            'parser': parser_name
-        }
-        r = await script.session.post('http://188.120.244.63:8000/clear_events/', json=payload)
-        logger.debug(f'request for clear: {r.status_code}')
 
     async def load_script(self):
         try:
@@ -58,14 +36,13 @@ class Controller:
     async def run(self):
         script = await self.load_script()
         if script:
-            await self._clear_events(script) # Берем сессию, созданную в классе Parser
             try:
                 await script.main()  # Запускаем async def main в parser.py
             except AttributeError as e:
                 logger.error(f'parser down with error: {e}')
                 return
 
-            logger.info(f'the script {parser_name} has successfully completed its work')
+            logger.info(f'the script {script.name} has successfully completed its work')
             if script.session is not None:
                 await script.session.close()
 
@@ -89,19 +66,17 @@ class Parser(Controller):
         if venue is not None:
             venue = venue.replace('\n', ' ')
 
-        parser = parser_name
+        parser = self.name
 
         log_time_format = '%Y-%m-%d %H:%M:%S'
         normal_date = datetime.strftime(date, log_time_format)
-        
-        venue_id = await find_or_create_venue(venue)
 
         new_event = {
             "name": event_name,
             "link": link,
             "parser": parser,
             "date": normal_date,
-            "venue_id": venue_id
+            "venue_id": venue
         }
 
         r = await self.session.post('http://188.120.244.63:8000/put_event/', json=new_event)
