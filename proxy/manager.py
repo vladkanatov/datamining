@@ -1,7 +1,7 @@
-from datamining.proxy.get import get_proxies
-from datetime import datetime, timedelta
-from datamining.logger import logger
-import random
+# from datamining.proxy.get import get_proxies
+# from datetime import datetime, timedelta
+# from datamining.logger import logger
+# import random
 
 
 class ProxyManager:

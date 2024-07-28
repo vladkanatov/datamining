@@ -1,10 +1,15 @@
 from datetime import datetime
 import importlib
 import inspect
+from decouple import config
 
 from loguru import logger
 from .manager import user_agent
 from datamining.manager.session import AsyncSession, AsyncProxySession
+
+SERVER_HOST= config('SERVER_HOST')
+SERVER_PORT= config('SERVER_PORT')
+
 
 class Controller:
 
@@ -60,7 +65,8 @@ class Parser(Controller):
             event_name: str,
             link: str,
             date: datetime,
-            venue: str = None):
+            venue: str = None,
+            image_link: str = None):
 
         event_name = event_name.replace('\n', ' ')
         if venue is not None:
@@ -76,9 +82,10 @@ class Parser(Controller):
             "link": link,
             "parser": parser,
             "date": normal_date,
-            "venue_id": venue
+            "venue": venue,
+            "image_links": image_link
         }
 
-        r = await self.session.post('http://188.120.244.63:8000/put_event/', json=new_event)
+        r = await self.session.post(f'http://{SERVER_HOST}:{SERVER_PORT}/api/put_event', json=new_event)
         if r.status_code != 200:
             logger.error(f"the request to the allocator ended with the code: {r.status_code}")
