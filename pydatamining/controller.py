@@ -1,14 +1,11 @@
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
-from functools import wraps
 from loguru import logger # type: ignore
 from kafka import KafkaProducer # type: ignore
 import json
 from decouple import config # type: ignore
-import inspect
-import importlib
-from manager import user_agent
-from manager.session import AsyncSession, AsyncProxySession
+from pydatamining.manager import user_agent
+from pydatamining.manager.session import AsyncSession, AsyncProxySession
 
 KAFKA_TOPIC = config('KAFKA_TOPIC')
 KAFKA_BROKER = config('KAFKA_BROKER')

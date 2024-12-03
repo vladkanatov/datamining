@@ -5,7 +5,7 @@ import aiohttp # type: ignore
 from aiohttp import ClientResponse, BasicAuth # type: ignore
 from aiohttp.typedefs import StrOrURL, JSONDecoder # type: ignore
 from typing import Any, Optional
-from proxy.manager import ProxyManager
+from pydatamining.proxy.manager import ProxyManager
 
 active_sessions = weakref.WeakSet()
 
