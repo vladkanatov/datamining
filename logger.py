@@ -1,4 +1,4 @@
-from loguru import logger
+from loguru import logger # type: ignore
 import sys
 
 def configure_logger() -> None:

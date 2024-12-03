@@ -1,9 +1,9 @@
 from functools import wraps
 import json
 import weakref
-import aiohttp
-from aiohttp import ClientResponse, BasicAuth
-from aiohttp.typedefs import StrOrURL, JSONDecoder
+import aiohttp # type: ignore
+from aiohttp import ClientResponse, BasicAuth # type: ignore
+from aiohttp.typedefs import StrOrURL, JSONDecoder # type: ignore
 from typing import Any, Optional
 from proxy.manager import ProxyManager
 

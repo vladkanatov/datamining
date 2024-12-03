@@ -2,3 +2,5 @@
 logs/
 venv/
 .env
+pydatamining.egg-info/
+dist/
