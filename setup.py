@@ -5,7 +5,7 @@ setup(
     version="1.0.0",  # Версия проекта
     author="vladkanatov",
     author_email="vlad.kanatik@ya.ru",
-    description="Описание вашего проекта",
+    description="Parser module for send message in Apache Kafka",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/notickets/pydatamining",

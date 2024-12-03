@@ -7,28 +7,25 @@
 ### Автоматически
 
 ```sh
-pip install datamining
+pip install pydatamining
 ```
 
 ### Вручную
 
-1. Клонируйте репозиторий:
+1. Клонируйте репозиторий в папку с проектом:
     ```sh
-    git clone <URL репозитория>
+    git clone https://github.com/notickets/pydatamining
     ```
-2. Перейдите в директорию проекта:
-    ```sh
-    cd <название директории>
-    ```
-3. Создайте виртуальное окружение:
+
+2. Создайте виртуальное окружение:
     ```sh
     python3 -m venv venv
     ```
-4. Активируйте виртуальное окружение:
+3. Активируйте виртуальное окружение:
     ```sh
     source venv/bin/activate
     ```
-5. Установите зависимости:
+4. Установите зависимости:
     ```sh
-    pip install -r requirements.txt
+    pip install -r pydatamining/requirements.txt
     ```
