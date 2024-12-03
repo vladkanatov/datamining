@@ -1,9 +1,13 @@
+from functools import wraps
 import json
+import weakref
 import aiohttp
 from aiohttp import ClientResponse, BasicAuth
 from aiohttp.typedefs import StrOrURL, JSONDecoder
 from typing import Any, Optional
-from datamining.proxy.manager import ProxyManager
+from proxy.manager import ProxyManager
+
+active_sessions = weakref.WeakSet()
 
 class AwaitedResponse:
 
@@ -42,45 +46,23 @@ class AwaitedResponse:
 
 
 class AsyncSession(aiohttp.ClientSession):
-    # semaphores_on_ip = defaultdict(lambda: asyncio.Semaphore(3))
+    """
+    Асинхронная сессия, упрощающая aiohttp.ClientSession.
+    """
 
     def __init__(self):
         super().__init__()
+        
+        active_sessions.add(self) # Добавляем сессию в список активных сессий 
+                                  # (для автоматического закрытия)
 
-    # def __repr__(self):
-    #     return f'<[{self.bot.name}] AsyncProxySession>'
+    def __repr__(self):
+        return '<AsyncSession>'
 
     @property
     def cookies(self):
         return super().cookie_jar
 
-    # async def _request(self, method, url, *args, **kwargs):
-    #     # Preparing parameters
-    #     str_proxy = self.bot.proxy.async_proxy
-    #     kwargs['proxy'] = str_proxy
-    #     kwargs['proxy_auth'] = self.bot.proxy.async_proxy_auth
-    #     if 'verify' in kwargs:
-    #         kwargs['ssl'] = kwargs.pop('verify')
-    #
-    #     # Spreading
-    #     if not self.bot.spreading:
-    #         return await super()._request(url, *args, **kwargs)
-    #     domain = urlparse(url).netloc
-    #     await_key = (domain, str_proxy,)
-    #     semaphore = self.semaphores_on_ip[await_key]
-    #
-    #     await semaphore.acquire()
-    #     await self.global_semaphore.acquire()
-    #     global in_process
-    #     try:
-    #         in_process += 1
-    #         # logger.debug('aiohttp', in_process)
-    #         return await super()._request(method, url, *args, **kwargs)
-    #     finally:
-    #         in_process -= 1
-    #         # logger.debug('aiohttp', in_process)
-    #         semaphore.release()
-    #         self.global_semaphore.release()
 
     @staticmethod
     async def _static_response(method, *args, **kwargs):
@@ -233,3 +215,17 @@ class AsyncProxySession(aiohttp.ClientSession):
     def delete_with(self, url: StrOrURL, **kwargs: Any):
         """Perform HTTP DELETE request with ``with`` constructor"""
         return super().delete(url, **kwargs)
+    
+def auto_close_sessions(func):
+    """Decorator that closes all active sessions after the function is executed."""
+    
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        finally:
+            while active_sessions:
+                session = next(iter(active_sessions))
+                await session.close()
+                active_sessions.remove(session)
+    return wrapper

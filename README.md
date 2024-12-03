@@ -1,8 +1,34 @@
-# Datamining module for parsers
+# Проект Kafka Event Parser
 
-This module required 4 env variables:
+Этот проект предназначен для парсинга событий и отправки их в Kafka.
 
-- DB 
-- LOGIN
-- PASSWORD
-- HOST
+## Установка
+
+### Автоматически
+
+```sh
+pip install datamining
+```
+
+### Вручную
+
+1. Клонируйте репозиторий:
+    ```sh
+    git clone <URL репозитория>
+    ```
+2. Перейдите в директорию проекта:
+    ```sh
+    cd <название директории>
+    ```
+3. Создайте виртуальное окружение:
+    ```sh
+    python3 -m venv venv
+    ```
+4. Активируйте виртуальное окружение:
+    ```sh
+    source venv/bin/activate
+    ```
+5. Установите зависимости:
+    ```sh
+    pip install -r requirements.txt
+    ```

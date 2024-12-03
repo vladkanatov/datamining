@@ -1,91 +1,50 @@
-from datetime import datetime
-import importlib
-import inspect
-from decouple import config
-
+from datetime import datetime, timezone
+from dataclasses import dataclass, asdict
+from functools import wraps
 from loguru import logger
-from .manager import user_agent
-from datamining.manager.session import AsyncSession, AsyncProxySession
+from kafka import KafkaProducer
+import json
+from decouple import config
+import inspect
+import importlib
+from manager import user_agent
+from manager.session import AsyncSession, AsyncProxySession
 
-SERVER_HOST= config('SERVER_HOST')
-SERVER_PORT= config('SERVER_PORT')
+KAFKA_TOPIC = config('KAFKA_TOPIC')
+KAFKA_BROKER = config('KAFKA_BROKER')
 
+producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
 
-class Controller:
+# Названия полей включают в себя `event` для парсинга из Kafka
+@dataclass
+class Event:
+    Name: str
+    URL: str
+    Date: datetime
+    Venue: str = None
+    ImageURL: str = None
 
+    def json(self):
+        return asdict(self)
+
+class Parser:
     def __init__(self):
-        super().__init__()
-
-        self.script = 'parser'
+        self.session = None
         self.user_agent = user_agent.random()
 
-    def __str__(self) -> str:
-        """Этот класс используется для запуска
-        скриптов для парсинга информации с различных
-        web-ресурсов"""
+    async def initialize(self):
+        """Асинхронная инициализация."""
+        self.session = AsyncSession()
+        return self
 
-    async def load_script(self):
-        try:
-            parser_module = importlib.import_module(self.script)
-            for name in dir(parser_module):
-                obj = getattr(parser_module, name)
-                if (
-                        inspect.isclass(obj)
-                        and issubclass(obj, Parser)
-                        and obj != Parser
-                ):
-                    return obj()
-        except Exception as e:
-            logger.error(f"failed to load parser: {e}")
+    async def sendto_kafka(self, event: Event):
+        event.Name = event.Name.replace('\n', ' ')
+        if event.Venue is not None:
+            event.Venue = event.Venue.replace('\n', ' ')
 
-    async def run(self):
-        script = await self.load_script()
-        if script:
-            try:
-                await script.main()  # Запускаем async def main в parser.py
-            except AttributeError as e:
-                logger.error(f'parser down with error: {e}')
-                return
-
-            logger.info(f'the script {script.name} has successfully completed its work')
-            if script.session is not None:
-                await script.session.close()
-
-
-class Parser(Controller):
-    def __init__(self):
-        super().__init__()
-
-        self.session: AsyncSession = AsyncSession()
-        # self.session: AsyncProxySession = AsyncProxySession()
-        self.name = ''
-
-    async def register_event(
-            self,
-            event_name: str,
-            link: str,
-            date: datetime,
-            venue: str = None,
-            image_link: str = None):
-
-        event_name = event_name.replace('\n', ' ')
-        if venue is not None:
-            venue = venue.replace('\n', ' ')
-
-        parser = self.name
-
-        log_time_format = '%Y-%m-%d %H:%M:%S'
-        normal_date = datetime.strftime(date, log_time_format)
-
-        new_event = {
-            "name": event_name,
-            "link": link,
-            "parser": parser,
-            "date": normal_date,
-            "venue": venue,
-            "image_links": image_link
-        }
-
-        r = await self.session.post(f'http://{SERVER_HOST}:{SERVER_PORT}/api/put_event', json=new_event)
-        if r.status_code != 200:
-            logger.error(f"the request to the allocator ended with the code: {r.status_code}")
+        event.Date = event.Date.replace(tzinfo=timezone.utc).isoformat()
+        
+        event_data = json.dumps(event.json(), ensure_ascii=False).encode("utf-8")
+        
+        producer.send(KAFKA_TOPIC, event_data)
+        producer.flush()
