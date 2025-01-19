@@ -20,6 +20,7 @@ class Event:
     Date: datetime
     Venue: str = None
     ImageURL: str = None
+    City: str = None
 
     def json(self):
         return asdict(self)
@@ -27,7 +28,10 @@ class Event:
 class Parser:
     def __init__(self):
         self.session = None
-        self.user_agent = user_agent.random()
+        
+    @property
+    def user_agent(self):
+        return user_agent.random()
 
     async def initialize(self):
         """Асинхронная инициализация."""

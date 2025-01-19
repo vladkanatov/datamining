@@ -2,7 +2,7 @@ from setuptools import setup, find_packages # type: ignore
 
 setup(
     name="pydatamining",  # Имя проекта (должно быть уникальным на PyPI)
-    version="1.0.5",  # Версия проекта
+    version="1.0.6",  # Версия проекта
     author="vladkanatov",
     author_email="vlad.kanatik@ya.ru",
     description="Parser module for send message in Apache Kafka",
